@@ -107,13 +107,24 @@ for (const task of ["barista", "explain", "pairing"]) {
   const r3 = await askAI(task, payload, { onToken: (c) => (streamed += c) });
   assert(streamed === r3.text, `${task}: onToken 합 == 최종 텍스트`);
 }
+// 무인 다이제스트(오늘의 추천) 태스크도 결정론 + 오프라인 Mock 동작 확인.
+{
+  const recipes = JSON.parse(readFileSync(join(ROOT, "data/recipes.json"), "utf8")).recipes;
+  const payload = { band: "아침", recipe: recipes[0], beans };
+  const d1 = await askAI("digest", payload);
+  const d2 = await askAI("digest", payload);
+  assert(d1.mock === true, "digest: mock 모드");
+  assert(d1.text.length > 20 && d1.text.includes(recipes[0].name), "digest: 레시피 반영 출력");
+  assert(d1.text === d2.text, "digest: 동일 입력 → 동일 출력(결정론)");
+}
 
 /* 6) 보안 검사 -------------------------------------------------------------- */
 console.log("\n[6] 보안");
 const { AI_ENDPOINT } = await import("./ai/config.js");
 assert(AI_ENDPOINT === "", "ai/config.js AI_ENDPOINT 비어있음(데모=Mock)");
-// 실제 키 포맷만 탐지: sk-ant- + 키문자 20자 이상 (플레이스홀더 제외)
-const keyRe = /sk-ant-[A-Za-z0-9]{20,}/;
+// 실제 키 포맷만 탐지: sk-ant- + 키문자 20자 이상.
+// 리터럴을 쪼개 조립 → 이 파일/README 의 "sk-ant…" 언급이 자기 자신을 오탐하지 않음.
+const keyRe = new RegExp('sk-' + 'ant-[A-Za-z0-9_-]{20,}');
 let leaked = null;
 for (const f of allFiles) {
   if (/\.(png|jpg|jpeg|gif|ico|war|zip)$/.test(f)) continue;

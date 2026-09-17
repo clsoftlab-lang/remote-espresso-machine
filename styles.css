@@ -87,6 +87,20 @@ code { background: var(--surface-2); padding: 1px 5px; border-radius: 5px; font-
   padding: 10px 14px; border-radius: 10px; font-size: .9rem; margin: 8px 0 4px;
 }
 
+/* 오늘의 추천 (무인 온로드 다이제스트) — 불필요하게 눈에 띄지 않게, 접근성 유지 */
+.daily-pick {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  padding: 10px 14px; border-radius: 10px; margin: 10px 0 4px;
+}
+.daily-pick[hidden] { display: none; }
+.daily-pick-icon { font-size: 1.1rem; line-height: 1.4; }
+.daily-pick-body { flex: 1; min-width: 0; }
+.daily-pick-body strong { font-size: .92rem; }
+.daily-pick-body p { margin: 2px 0 0; white-space: pre-wrap; }
+.daily-pick-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.daily-pick-actions .btn { padding: 6px 10px; font-size: .82rem; }
+
 /* Tabs */
 .tabs {
   display: flex; gap: 6px; overflow-x: auto; padding: 12px 0; position: sticky; top: 0;

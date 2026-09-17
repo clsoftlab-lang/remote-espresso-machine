@@ -29,19 +29,36 @@ volume, temperature and milk, tap **추출 (Brew)**, and watch an animated machi
 
 ## 🤖 AI 기능 (API 연동)
 
-Three AI features, all working via the **deterministic Mock** in the demo:
+Four AI features, all working via the **deterministic Mock** in the demo (offline):
 
 1. **AI 바리스타 챗봇** — recommends a recipe from your taste preferences (and applies it to the remote).
 2. **레시피 설명 / 보정** — explains and tweaks your current recipe.
 3. **원두 페어링 추천** — suggests dessert pairings per bean.
+4. **오늘의 추천 레시피 (시간대/취향 기반)** — an on-load, self-running digest that picks a recipe for the
+   current time of day (via the brew engine + recipes + `askAI`) and offers a one-tap apply. Works offline via the Mock.
 
 **Enable real Claude** (optional):
 
-1. Run the backend proxy in [`server/`](server/README.md) with **`ANTHROPIC_API_KEY`** (model **`claude-opus-5`**).
+1. Run the backend proxy in [`server/`](server/README.md) with **`ANTHROPIC_API_KEY`**
+   (cost-first default model **`claude-haiku-4-5`**, raise via `AI_MODEL`).
 2. Set `AI_ENDPOINT` in [`ai/config.js`](ai/config.js) to your proxy URL.
 
 The browser then streams from your proxy instead of the Mock. **API keys live server-side only** — never in the
 browser or the repo. `check.mjs` fails the build if it detects a real key (`sk-ant-…`) or a non-empty `AI_ENDPOINT`.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+- **비용 우선 기본 모델:** `claude-haiku-4-5` (**$1 / $5 per MTok** in/out) + **prompt caching**(ephemeral
+  시스템 블록) + 태스크별 출력 상한(기본 700 tok) + **월 토큰 예산**(`AI_MONTHLY_TOKEN_CAP`, 기본 2,000,000).
+  품질이 더 필요하면 `AI_MODEL=claude-sonnet-5` / `claude-opus-5` 로 상향.
+- **대략 비용(1,000 requests):** 요청당 ≈ 입력 400 tok(대부분 캐시 적중) + 출력 300 tok 가정 시
+  Haiku 기준 **대략 $1 미만 / 1,000건** 수준 — 캐시·상한 효과로 더 낮아질 수 있습니다(참고치).
+- **무인·무서버 배포:** [`server/worker.js`](server/worker.js) + [`server/wrangler.toml`](server/wrangler.toml)
+  → Cloudflare Workers **무료 티어**에 `wrangler secret put ANTHROPIC_API_KEY && wrangler deploy` 한 번이면
+  관리할 서버가 없습니다.
+- **자동 Mock 폴백(무인):** 프록시 실패 / `429 {fallback:true}`(레이트리밋·예산 초과) / 네트워크 오류 시
+  `ai/ai.js` 가 자동으로 결정론적 Mock 으로 폴백해 **앱이 절대 멈추지 않습니다** (스트리밍은 `onToken` 유지).
+- **API keys are server-side only — never in the browser or repo.**
 
 ## 🚀 Run locally
 
@@ -69,7 +86,7 @@ store.js            # localStorage (try/catch + reset)
 data/*.json         # recipes / beans / specs / parts
 ai/config.js        # AI_ENDPOINT = ""  (empty ⇒ Mock)
 ai/ai.js            # askAI(task, payload, {onToken}) — Mock or proxy
-server/             # optional Claude proxy (@anthropic-ai/sdk, key server-side)
+server/             # optional Claude proxy — index.mjs (Node) + worker.js (Cloudflare Workers), key server-side
 check.mjs           # CI verifier
 .github/workflows/  # CI (no npm install / no API calls)
 ```

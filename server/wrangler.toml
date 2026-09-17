@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+#
+# Cloudflare Workers 배포 설정 (server/worker.js).
+# 배포:
+#   npm i -g wrangler
+#   wrangler secret put ANTHROPIC_API_KEY   # 키는 secret 으로만 — 저장소/브라우저 금지
+#   wrangler deploy
+#
+# 무료 티어로 관리할 서버 없이 실 Claude 프록시가 동작합니다(무인).
+
+name = "espressimo-ai"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# 비용/동작 튜닝 (선택). 키는 여기에 두지 말고 반드시 `wrangler secret put` 으로.
+[vars]
+AI_MODEL = "claude-haiku-4-5"        # 비용 우선 기본값. 상향: claude-sonnet-5 / claude-opus-5
+AI_EFFORT = "low"                     # 비-haiku 모델에서만 적용
+AI_MAX_TOKENS = "700"                 # 태스크별 출력 상한
+AI_RATE_LIMIT = "20"                  # IP당 분당 요청
+AI_MONTHLY_TOKEN_CAP = "2000000"      # 월 토큰 예산(초과 시 429 fallback)

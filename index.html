@@ -32,6 +32,19 @@
     모든 기기 상태·추출은 목업이며, AI 응답은 기본적으로 <strong>결정론적 Mock</strong>입니다.
   </p>
 
+  <!-- 무인(autonomous): 온로드 자동 생성 — 오늘의 추천 레시피 (시간대/취향 기반) -->
+  <section id="daily-pick" class="daily-pick" role="region" aria-label="오늘의 추천 레시피" hidden>
+    <span class="daily-pick-icon" aria-hidden="true">✨</span>
+    <div class="daily-pick-body">
+      <strong>오늘의 추천 레시피</strong>
+      <p id="daily-pick-text" class="muted" aria-live="polite">추천을 준비하는 중…</p>
+    </div>
+    <div class="daily-pick-actions">
+      <button id="btn-daily-apply" class="btn primary" type="button" hidden>레시피에 적용</button>
+      <button id="btn-daily-dismiss" class="btn ghost" type="button" aria-label="오늘의 추천 닫기">✕</button>
+    </div>
+  </section>
+
   <nav class="tabs" role="tablist" aria-label="섹션">
     <button class="tab is-active" data-target="sec-remote" role="tab">📱 리모컨</button>
     <button class="tab" data-target="sec-recipes" role="tab">⭐ 레시피</button>

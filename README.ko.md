@@ -29,19 +29,35 @@ Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
 
 ## 🤖 AI 기능 (API 연동)
 
-세 가지 AI 기능, 데모에서는 모두 **결정론적 Mock** 으로 동작:
+네 가지 AI 기능, 데모에서는 모두 **결정론적 Mock** 으로 동작(오프라인):
 
 1. **AI 바리스타 챗봇** — 취향 입력 → 레시피 추천(리모컨에 바로 적용).
 2. **레시피 설명 / 보정** — 현재 레시피 분석·보정 팁.
 3. **원두 페어링 추천** — 원두별 디저트 페어링.
+4. **오늘의 추천 레시피 (시간대/취향 기반)** — 페이지 로드 시 자동 생성되는 무인 다이제스트. 현재 시간대에
+   맞는 레시피를 brew 엔진 + 레시피 + `askAI` 로 골라 원터치 적용을 제안합니다. 오프라인 Mock 으로도 동작.
 
 **실제 Claude 활성화** (선택):
 
-1. [`server/`](server/README.md) 프록시를 **`ANTHROPIC_API_KEY`** (모델 **`claude-opus-5`**) 로 실행.
+1. [`server/`](server/README.md) 프록시를 **`ANTHROPIC_API_KEY`** (비용 우선 기본 모델
+   **`claude-haiku-4-5`**, `AI_MODEL` 로 상향) 로 실행.
 2. [`ai/config.js`](ai/config.js) 의 `AI_ENDPOINT` 를 프록시 URL 로 설정.
 
 이후 브라우저는 Mock 대신 프록시에서 스트리밍을 받습니다. **API 키는 서버에만** 존재하며 브라우저/저장소에는
 두지 않습니다. `check.mjs` 는 실제 키(`sk-ant-…`) 나 비어있지 않은 `AI_ENDPOINT` 를 발견하면 실패합니다.
+
+## ⚙️ 고도화 — 무인·저비용 실 AI 연동
+
+- **비용 우선 기본 모델:** `claude-haiku-4-5` (**$1 / $5 per MTok** 입력/출력) + **prompt caching**(ephemeral
+  시스템 블록) + 태스크별 출력 상한(기본 700 tok) + **월 토큰 예산**(`AI_MONTHLY_TOKEN_CAP`, 기본 2,000,000).
+  품질이 더 필요하면 `AI_MODEL=claude-sonnet-5` / `claude-opus-5` 로 상향.
+- **대략 비용(1,000건):** 요청당 ≈ 입력 400 tok(대부분 캐시 적중) + 출력 300 tok 가정 시 Haiku 기준
+  **대략 $1 미만 / 1,000건** 수준 — 캐시·상한 효과로 더 낮아질 수 있습니다(참고치).
+- **무인·무서버 배포:** [`server/worker.js`](server/worker.js) + [`server/wrangler.toml`](server/wrangler.toml)
+  → Cloudflare Workers **무료 티어**에 `wrangler secret put ANTHROPIC_API_KEY && wrangler deploy` 한 번이면 끝.
+- **자동 Mock 폴백(무인):** 프록시 실패 / `429 {fallback:true}` / 네트워크 오류 시 `ai/ai.js` 가 자동으로
+  결정론적 Mock 으로 폴백해 **앱이 절대 멈추지 않습니다** (스트리밍은 `onToken` 유지).
+- **API keys are server-side only — never in the browser or repo.**
 
 ## 🚀 로컬 실행
 

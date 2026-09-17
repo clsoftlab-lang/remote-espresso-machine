@@ -54,6 +54,7 @@ async function init() {
   bindRecipes();
   bindSchedule();
   bindAI();
+  bindDailyPick();
   renderSpecs();
   renderBOM();
   bindReset();
@@ -65,6 +66,9 @@ async function init() {
   renderDevice();
   tickSchedules();
   setInterval(tickSchedules, 30000);
+
+  // 무인(autonomous): 온로드 자동 다이제스트. 실패해도 앱은 계속 동작(폴백은 askAI 내부).
+  renderDailyPick().catch((e) => console.error(e));
 }
 
 async function fetchJSON(path) {
@@ -460,6 +464,67 @@ function deriveRecommend(prefs) {
     if (wantsStrong && b.bitterness >= 4) { bean = b.id; break; }
   }
   return { bean, strength, shots: wantsStrong ? 2 : 1, volume: wantsMilk ? 40 : (wantsAcidity ? 160 : 30), temp: 92, milk: wantsMilk ? "steamed" : "none" };
+}
+
+/* --------------------------- 오늘의 추천 (무인) --------------------------- */
+// 시간대 → 라벨(결정론적).
+function timeBand(h) {
+  if (h >= 5 && h < 11) return { key: "morning", label: "아침" };
+  if (h >= 11 && h < 17) return { key: "afternoon", label: "오후" };
+  if (h >= 17 && h < 22) return { key: "evening", label: "저녁" };
+  return { key: "night", label: "심야" };
+}
+// 시간대별 취향 태그 우선순위로 기본 레시피 중 하나를 결정론적으로 선택.
+function pickDailyRecipe(band) {
+  const list = state.recipes || [];
+  if (!list.length) return null;
+  const prefer = {
+    morning: ["진한맛", "짧게"],
+    afternoon: ["밸런스", "산미"],
+    evening: ["우유", "고소함"],
+    night: ["가볍게", "산미"],
+  }[band.key] || [];
+  for (const tag of prefer) {
+    const hit = list.find((r) => (r.tags || []).includes(tag));
+    if (hit) return hit;
+  }
+  return list[0];
+}
+
+let dailyRecipe = null;
+async function renderDailyPick() {
+  const banner = $("#daily-pick");
+  if (!banner) return;
+  const band = timeBand(new Date().getHours());
+  const rec = pickDailyRecipe(band);
+  if (!rec) return;
+  dailyRecipe = rec;
+  banner.hidden = false;
+  const textEl = $("#daily-pick-text");
+  textEl.textContent = "";
+  // brew 엔진 + 레시피 + askAI(오프라인 Mock 동작) 로 다이제스트 생성.
+  const { text } = await askAI(
+    "digest",
+    { band: band.label, recipe: rec, beans: state.beans },
+    { onToken: (c) => (textEl.textContent += c) }
+  );
+  if (!textEl.textContent) textEl.textContent = text;
+  const applyBtn = $("#btn-daily-apply");
+  if (applyBtn) applyBtn.hidden = false;
+}
+
+function bindDailyPick() {
+  const applyBtn = $("#btn-daily-apply");
+  const dismissBtn = $("#btn-daily-dismiss");
+  if (applyBtn) applyBtn.addEventListener("click", () => {
+    if (!dailyRecipe) return;
+    loadRecipe(dailyRecipe);
+    setStatus("오늘의 추천 적용됨 — 추출하세요", "done");
+  });
+  if (dismissBtn) dismissBtn.addEventListener("click", () => {
+    const banner = $("#daily-pick");
+    if (banner) banner.hidden = true;
+  });
 }
 
 /* ------------------------------- 스펙 / BOM ------------------------------- */

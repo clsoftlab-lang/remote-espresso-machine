@@ -13,28 +13,40 @@ import { AI_ENDPOINT } from "./config.js";
 import { planBrew, STRENGTH_LABEL, formatSeconds } from "../brew.js";
 
 /** 지원하는 태스크 목록. */
-export const AI_TASKS = Object.freeze(["barista", "explain", "pairing"]);
+export const AI_TASKS = Object.freeze(["barista", "explain", "pairing", "digest"]);
 
 /**
- * @param {"barista"|"explain"|"pairing"} task
+ * @param {"barista"|"explain"|"pairing"|"digest"} task
  * @param {object} payload
  * @param {{onToken?:(chunk:string)=>void}} [opts]
  * @returns {Promise<{task:string,text:string,mock:boolean}>}
  */
 export async function askAI(task, payload = {}, { onToken } = {}) {
-  if (!AI_ENDPOINT) {
-    const text = mockProvider(task, payload);
-    if (typeof onToken === "function") {
-      // 결정론적 청크(공백 단위)로 스트리밍 흉내 — 최종 text 는 항상 동일.
-      for (const chunk of text.split(/(\s+)/)) if (chunk) onToken(chunk);
+  if (!AI_ENDPOINT) return streamMock(task, payload, onToken);
+  try {
+    return await callProxy(task, payload, onToken);
+  } catch (err) {
+    // 무인(autonomous): 프록시 실패 / 429 {fallback:true} / 네트워크 오류 → Mock 폴백.
+    // 앱은 절대 멈추지 않습니다.
+    if (typeof console !== "undefined" && console.warn) {
+      console.warn("AI 프록시 폴백 → Mock:", err && err.message ? err.message : err);
     }
-    return { task, text, mock: true };
+    return streamMock(task, payload, onToken);
   }
-  return await callProxy(task, payload, onToken);
+}
+
+/** 결정론적 Mock 을 onToken 으로 스트리밍(흉내)하고 결과를 반환. */
+function streamMock(task, payload, onToken) {
+  const text = mockProvider(task, payload);
+  if (typeof onToken === "function") {
+    // 결정론적 청크(공백 단위)로 스트리밍 흉내 — 최종 text 는 항상 동일.
+    for (const chunk of text.split(/(\s+)/)) if (chunk) onToken(chunk);
+  }
+  return { task, text, mock: true };
 }
 
 /* -------------------------------------------------------------------------- */
-/* 실제 프록시 호출 (server/index.mjs 와 연동)                                  */
+/* 실제 프록시 호출 (server/index.mjs / worker.js 와 연동)                       */
 /* -------------------------------------------------------------------------- */
 async function callProxy(task, payload, onToken) {
   const res = await fetch(AI_ENDPOINT, {
@@ -42,6 +54,7 @@ async function callProxy(task, payload, onToken) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ task, payload }),
   });
+  // 비정상 응답(429 {fallback:true} 포함)은 예외로 던져 askAI 에서 Mock 폴백.
   if (!res.ok) throw new Error(`AI 프록시 오류: ${res.status}`);
 
   let text = "";
@@ -149,7 +162,23 @@ function mockProvider(task, payload) {
         "산미가 강한 원두는 상큼한 과일 디저트, 쓴맛이 강한 원두는 진한 초콜릿과 잘 어울려요.",
       ].join("\n");
     }
+    case "digest": {
+      // 오늘의 추천 레시피 (시간대/취향 기반) — 무인 온로드 다이제스트.
+      const r = payload.recipe || {};
+      const band = payload.band || "오늘";
+      const plan = planBrew(r);
+      const bn = beanName(payload, r.bean);
+      return [
+        "✨ 오늘의 추천 레시피 (데모 · Mock)",
+        "",
+        `${band} 시간대엔 "${r.name || "추천 레시피"}" 한 잔 어때요?`,
+        `- 원두 ${bn} · 농도 ${STRENGTH_LABEL[r.strength] || "-"} · ${r.shots}샷 · ${r.volume}ml · ${r.temp}°C`,
+        `- 브루비율 1:${plan.ratio} (${plan.ratioClass.label}) · 예상 총 ${formatSeconds(plan.timing.total)}`,
+        "",
+        "‘레시피에 적용’을 누르면 리모컨에 그대로 세팅됩니다.",
+      ].join("\n");
+    }
     default:
-      return "지원하지 않는 요청입니다. (barista / explain / pairing)";
+      return "지원하지 않는 요청입니다. (barista / explain / pairing / digest)";
   }
 }
