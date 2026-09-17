@@ -1,0 +1,18 @@
+{
+  "currency": "KRW",
+  "disclaimer": "아래 단가는 개략적 참고치이며 검증되지 않았습니다. (reference not verified)",
+  "parts": [
+    { "id": "boiler", "name": "듀얼 보일러 어셈블리", "qty": 1, "unitPrice": 42000, "category": "열/유체" },
+    { "id": "pump", "name": "진동 펌프 (ULKA 계열 가정)", "qty": 1, "unitPrice": 18000, "category": "열/유체" },
+    { "id": "grinder", "name": "코니컬 버 그라인더 유닛", "qty": 1, "unitPrice": 55000, "category": "그라인딩" },
+    { "id": "mcu", "name": "듀얼코어 MCU 보드", "qty": 1, "unitPrice": 12000, "category": "전자" },
+    { "id": "wifi", "name": "Wi-Fi + BLE 모듈", "qty": 1, "unitPrice": 6000, "category": "전자" },
+    { "id": "lcd", "name": "2.4인치 LCD + 로터리 인코더", "qty": 1, "unitPrice": 9000, "category": "전자" },
+    { "id": "sensors", "name": "수위·유량·온도·원두량 센서 세트", "qty": 1, "unitPrice": 14000, "category": "센서" },
+    { "id": "valve", "name": "3방향 솔레노이드 밸브 + OPV", "qty": 1, "unitPrice": 11000, "category": "열/유체" },
+    { "id": "tank", "name": "1.8L 탈착식 물탱크", "qty": 1, "unitPrice": 5000, "category": "하우징" },
+    { "id": "housing", "name": "본체 하우징 + 드립트레이", "qty": 1, "unitPrice": 22000, "category": "하우징" },
+    { "id": "psu", "name": "전원부 + 히터 릴레이", "qty": 1, "unitPrice": 8000, "category": "전자" },
+    { "id": "misc", "name": "배선·실링·나사·포터필터 등 기타", "qty": 1, "unitPrice": 15000, "category": "기타" }
+  ]
+}

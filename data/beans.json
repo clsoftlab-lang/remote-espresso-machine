@@ -1,0 +1,82 @@
+{
+  "beans": [
+    {
+      "id": "ethiopia-yirgacheffe",
+      "name": "에티오피아 예가체프",
+      "roast": "light",
+      "roastLabel": "약배전",
+      "notes": ["꽃향", "감귤", "홍차"],
+      "acidity": 5,
+      "body": 2,
+      "bitterness": 2,
+      "recommendStrength": "light",
+      "pairing": ["레몬 파운드케이크", "허니 요거트"],
+      "desc": "밝은 산미와 화사한 꽃향이 특징인 워시드 원두."
+    },
+    {
+      "id": "colombia-supremo",
+      "name": "콜롬비아 수프리모",
+      "roast": "medium",
+      "roastLabel": "중배전",
+      "notes": ["캐러멜", "견과", "다크초콜릿"],
+      "acidity": 3,
+      "body": 3,
+      "bitterness": 3,
+      "recommendStrength": "medium",
+      "pairing": ["크루아상", "밀크 초콜릿"],
+      "desc": "균형 잡힌 단맛과 부드러운 바디의 만능 원두."
+    },
+    {
+      "id": "brazil-santos",
+      "name": "브라질 산토스",
+      "roast": "medium",
+      "roastLabel": "중배전",
+      "notes": ["땅콩", "누가", "카카오"],
+      "acidity": 2,
+      "body": 4,
+      "bitterness": 3,
+      "recommendStrength": "medium",
+      "pairing": ["플레인 스콘", "바닐라 아이스크림"],
+      "desc": "고소한 견과향과 두툼한 바디, 우유와 특히 잘 어울림."
+    },
+    {
+      "id": "guatemala-antigua",
+      "name": "과테말라 안티구아",
+      "roast": "medium-dark",
+      "roastLabel": "중강배전",
+      "notes": ["다크초콜릿", "스모키", "향신료"],
+      "acidity": 3,
+      "body": 4,
+      "bitterness": 4,
+      "recommendStrength": "strong",
+      "pairing": ["다크 초콜릿", "치즈케이크"],
+      "desc": "진한 초콜릿 뉘앙스와 스모키한 여운의 스트롱 원두."
+    },
+    {
+      "id": "italian-blend",
+      "name": "이탈리안 블렌드",
+      "roast": "dark",
+      "roastLabel": "강배전",
+      "notes": ["다크초콜릿", "탄내", "몰트"],
+      "acidity": 1,
+      "body": 5,
+      "bitterness": 5,
+      "recommendStrength": "extra",
+      "pairing": ["티라미수", "우유 라떼"],
+      "desc": "묵직한 크레마와 강렬한 쓴맛, 정통 에스프레소·라떼 베이스."
+    },
+    {
+      "id": "kenya-aa",
+      "name": "케냐 AA",
+      "roast": "medium",
+      "roastLabel": "중배전",
+      "notes": ["블랙커런트", "자몽", "와인"],
+      "acidity": 5,
+      "body": 3,
+      "bitterness": 2,
+      "recommendStrength": "medium",
+      "pairing": ["베리 타르트", "다크 초콜릿"],
+      "desc": "선명한 베리 산미와 와인 같은 복합미의 프리미엄 원두."
+    }
+  ]
+}

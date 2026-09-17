@@ -1,0 +1,52 @@
+{
+  "recipes": [
+    {
+      "id": "morning-ristretto",
+      "name": "아침 리스트레토",
+      "bean": "italian-blend",
+      "strength": "extra",
+      "shots": 2,
+      "volume": 25,
+      "temp": 93,
+      "milk": "none",
+      "tags": ["진한맛", "짧게"],
+      "desc": "잠을 깨우는 응축된 한 잔. 크레마가 두껍습니다."
+    },
+    {
+      "id": "smooth-latte",
+      "name": "부드러운 라떼",
+      "bean": "brazil-santos",
+      "strength": "medium",
+      "shots": 2,
+      "volume": 40,
+      "temp": 92,
+      "milk": "steamed",
+      "tags": ["우유", "고소함"],
+      "desc": "고소한 브라질 원두에 스팀밀크를 더한 데일리 라떼."
+    },
+    {
+      "id": "bright-americano",
+      "name": "산뜻한 아메리카노",
+      "bean": "ethiopia-yirgacheffe",
+      "strength": "light",
+      "shots": 1,
+      "volume": 180,
+      "temp": 90,
+      "milk": "none",
+      "tags": ["산미", "가볍게"],
+      "desc": "화사한 산미가 살아있는 롱블랙 스타일."
+    },
+    {
+      "id": "balanced-flat",
+      "name": "밸런스 플랫화이트",
+      "bean": "colombia-supremo",
+      "strength": "medium",
+      "shots": 2,
+      "volume": 35,
+      "temp": 92,
+      "milk": "foam",
+      "tags": ["우유", "밸런스"],
+      "desc": "균형 잡힌 콜롬비아 샷에 벨벳 폼을 얹은 플랫화이트."
+    }
+  ]
+}

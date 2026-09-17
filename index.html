@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<!--
+  SPDX-License-Identifier: Apache-2.0
+  Copyright 2026 CLSOFTLAB (씨엘소프트랩), Dr. Lee Il-guk (이일국)
+-->
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에스프레시모 — 우리집 바리스타 IoT 시뮬레이터</title>
+  <meta name="description" content="폰으로 조작하는 IoT 에스프레소 머신 '에스프레시모' 인터랙티브 시뮬레이터 + 설계/스펙/BOM 문서 (설계 개념 데모)." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%95%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">☕</span>
+      <div>
+        <h1>에스프레시모 <small>Espressimo</small></h1>
+        <p class="tag">우리집 바리스타 · 폰으로 내리는 IoT 에스프레소</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="badge demo" title="이 사이트는 설계 개념 데모입니다">DEMO 모드</span>
+      <button id="theme-toggle" class="btn ghost" type="button" aria-label="라이트/다크 전환">🌙</button>
+    </div>
+  </header>
+
+  <p class="concept-note">
+    <strong>개념 경계:</strong> 실제 하드웨어 제품이 아닌 <strong>설계 개념 시뮬레이터</strong>입니다.
+    모든 기기 상태·추출은 목업이며, AI 응답은 기본적으로 <strong>결정론적 Mock</strong>입니다.
+  </p>
+
+  <nav class="tabs" role="tablist" aria-label="섹션">
+    <button class="tab is-active" data-target="sec-remote" role="tab">📱 리모컨</button>
+    <button class="tab" data-target="sec-recipes" role="tab">⭐ 레시피</button>
+    <button class="tab" data-target="sec-schedule" role="tab">⏰ 예약</button>
+    <button class="tab" data-target="sec-device" role="tab">🔧 기기상태</button>
+    <button class="tab" data-target="sec-ai" role="tab">🤖 AI</button>
+    <button class="tab" data-target="sec-specs" role="tab">📐 설계/스펙</button>
+  </nav>
+
+  <main>
+    <!-- ========================= 리모컨 시뮬레이터 ========================= -->
+    <section id="sec-remote" class="panel is-active">
+      <div class="remote-layout">
+        <!-- 폰 형태 리모컨 -->
+        <div id="remote" class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <h2>추출 리모컨</h2>
+
+            <label class="field">
+              <span>원두</span>
+              <select id="opt-bean"></select>
+            </label>
+
+            <div class="field">
+              <span>농도</span>
+              <div id="opt-strength" class="segmented" role="group" aria-label="농도">
+                <button type="button" data-val="light">연하게</button>
+                <button type="button" data-val="medium" class="on">보통</button>
+                <button type="button" data-val="strong">진하게</button>
+                <button type="button" data-val="extra">아주진하게</button>
+              </div>
+            </div>
+
+            <label class="field">
+              <span>샷수 <b id="val-shots">2</b></span>
+              <input id="opt-shots" type="range" min="1" max="4" step="1" value="2" />
+            </label>
+
+            <label class="field">
+              <span>물량 <b id="val-volume">40</b> ml</span>
+              <input id="opt-volume" type="range" min="15" max="300" step="5" value="40" />
+            </label>
+
+            <label class="field">
+              <span>온도 <b id="val-temp">92</b> °C</span>
+              <input id="opt-temp" type="range" min="88" max="96" step="1" value="92" />
+            </label>
+
+            <div class="field">
+              <span>우유</span>
+              <div id="opt-milk" class="segmented" role="group" aria-label="우유">
+                <button type="button" data-val="none" class="on">없음</button>
+                <button type="button" data-val="steamed">스팀</button>
+                <button type="button" data-val="foam">폼</button>
+                <button type="button" data-val="cold">콜드</button>
+              </div>
+            </div>
+
+            <div id="plan-readout" class="readout" aria-live="polite"></div>
+
+            <div class="phone-actions">
+              <button id="btn-brew" class="btn primary" type="button">☕ 추출 시작</button>
+              <button id="btn-save-recipe" class="btn ghost" type="button">⭐ 레시피 저장</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 머신 애니메이션 -->
+        <div class="machine-wrap">
+          <div id="status" class="status" aria-live="polite">대기 중</div>
+          <div id="machine" class="machine">
+            <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="에스프레소 머신 애니메이션">
+              <!-- 본체 -->
+              <rect x="20" y="20" width="180" height="150" rx="14" class="m-body" />
+              <rect x="30" y="30" width="160" height="42" rx="8" class="m-panel" />
+              <circle cx="52" cy="51" r="9" class="m-led" id="m-led" />
+              <rect x="72" y="44" width="108" height="14" rx="7" class="m-screen" />
+              <!-- 그룹헤드 -->
+              <rect x="92" y="86" width="36" height="18" rx="4" class="m-group" />
+              <!-- 포터필터 스파웃 -->
+              <rect x="104" y="104" width="12" height="14" class="m-spout" />
+              <!-- 커피 스트림 -->
+              <rect id="m-stream" x="108" y="118" width="4" height="0" class="m-stream" />
+              <!-- 스팀 -->
+              <g id="m-steam" class="m-steam" opacity="0">
+                <path d="M96 92 q-6 -10 0 -20 q6 -10 0 -20" />
+                <path d="M124 92 q6 -10 0 -20 q-6 -10 0 -20" />
+              </g>
+              <!-- 컵 -->
+              <g class="m-cup">
+                <path d="M78 170 h64 l-6 46 a10 10 0 0 1 -10 8 h-32 a10 10 0 0 1 -10 -8 z" class="m-cup-body" />
+                <path id="m-coffee" d="M84 216 h52 l-2 8 a10 10 0 0 1 -10 8 h-28 a10 10 0 0 1 -10 -8 z" class="m-coffee" />
+                <path d="M142 178 q22 4 22 22 q0 18 -22 22" class="m-handle" fill="none" />
+              </g>
+              <!-- 받침 -->
+              <rect x="60" y="228" width="100" height="8" rx="4" class="m-tray" />
+            </svg>
+          </div>
+          <div class="progress-wrap">
+            <div id="progress-bar" class="progress-bar"><span></span></div>
+            <div id="progress-label" class="progress-label">준비되면 추출을 시작하세요.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= 레시피 ========================= -->
+    <section id="sec-recipes" class="panel">
+      <h2>레시피 · 즐겨찾기</h2>
+      <p class="muted">기본 레시피 + 내가 저장한 레시피. 불러오면 리모컨에 그대로 세팅됩니다.</p>
+      <div id="recipes" class="recipe-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- ========================= 예약 추출 ========================= -->
+    <section id="sec-schedule" class="panel">
+      <h2>예약 추출</h2>
+      <p class="muted">현재 리모컨 설정을 원하는 시각에 예약합니다 (데모: 브라우저 내 목업 타이머).</p>
+      <div class="schedule-form">
+        <label class="field inline">
+          <span>시각</span>
+          <input id="sched-time" type="time" value="07:30" />
+        </label>
+        <label class="field inline">
+          <span>반복</span>
+          <select id="sched-repeat">
+            <option value="once">한 번</option>
+            <option value="weekday">평일 매일</option>
+            <option value="daily">매일</option>
+          </select>
+        </label>
+        <button id="btn-add-sched" class="btn primary" type="button">＋ 예약 추가</button>
+      </div>
+      <ul id="schedule" class="schedule-list" aria-live="polite"></ul>
+    </section>
+
+    <!-- ========================= 기기 상태 ========================= -->
+    <section id="sec-device" class="panel">
+      <h2>기기 상태 <span class="muted">(mock)</span></h2>
+      <div id="device" class="device-grid"></div>
+      <button id="btn-device-reset" class="btn ghost" type="button">기기 상태 리필/리셋</button>
+    </section>
+
+    <!-- ========================= AI ========================= -->
+    <section id="sec-ai" class="panel">
+      <h2>🤖 AI 기능 <span class="badge">Mock 데모</span></h2>
+      <p class="muted">
+        기본은 <strong>결정론적 Mock</strong>입니다. 실제 Claude 연동은 <code>server/</code> 프록시 +
+        <code>ANTHROPIC_API_KEY</code> + <code>ai/config.js</code> 설정으로 활성화됩니다.
+        <strong>API 키는 서버에만 보관됩니다.</strong>
+      </p>
+      <div id="ai" class="ai-grid">
+        <div class="ai-card">
+          <h3>① AI 바리스타 챗봇</h3>
+          <label class="field">
+            <span>취향을 알려주세요</span>
+            <input id="ai-prefs" type="text" placeholder="예: 산미 있는 가벼운 커피 / 우유 들어간 진한 커피" />
+          </label>
+          <button id="btn-ai-barista" class="btn primary" type="button">추천 받기</button>
+          <button id="btn-ai-apply" class="btn ghost" type="button" hidden>레시피에 적용</button>
+          <pre id="ai-out-barista" class="ai-out" aria-live="polite"></pre>
+        </div>
+        <div class="ai-card">
+          <h3>② 레시피 설명 / 보정</h3>
+          <p class="muted">현재 리모컨 설정을 분석합니다.</p>
+          <button id="btn-ai-explain" class="btn primary" type="button">설명·보정 받기</button>
+          <pre id="ai-out-explain" class="ai-out" aria-live="polite"></pre>
+        </div>
+        <div class="ai-card">
+          <h3>③ 원두 페어링 추천</h3>
+          <label class="field">
+            <span>원두</span>
+            <select id="ai-bean"></select>
+          </label>
+          <button id="btn-ai-pairing" class="btn primary" type="button">페어링 추천</button>
+          <pre id="ai-out-pairing" class="ai-out" aria-live="polite"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= 설계/스펙/BOM ========================= -->
+    <section id="sec-specs" class="panel">
+      <h2>설계 / 스펙</h2>
+      <p id="spec-concept" class="muted"></p>
+      <div class="table-scroll">
+        <table id="specs" class="tbl">
+          <thead><tr><th>구분</th><th>구성</th><th>사양</th><th>비고</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h2>대략 BOM <span class="badge warn">reference not verified</span></h2>
+      <p id="bom-disclaimer" class="muted"></p>
+      <div class="table-scroll">
+        <table id="bom" class="tbl">
+          <thead><tr><th>부품</th><th>분류</th><th>수량</th><th>단가(원)</th><th>소계(원)</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><th colspan="4">합계 (참고치)</th><th id="bom-total">-</th></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========================= 아이디어 출처 ========================= -->
+    <section id="origin" class="panel is-active origin">
+      <h2>🎓 아이디어 출처 / Idea origin</h2>
+      <p>
+        이 아이디어는 <strong>이일국 박사(Dr. Lee Il-guk)</strong>의 <strong>용인대학교(Yongin University)</strong>
+        창업 수업에서 나온 한 수강생의 돋보이는 발상에서 영감을 받았습니다. 감사의 마음을 전합니다.
+        본 구현물은 그 발상을 <strong>클린룸(clean-room)</strong> 방식으로 새로 만든 독립 데모이며, 원문 문장·개인정보·상표를 포함하지 않습니다.
+      </p>
+      <p class="muted">
+        Inspired by a standout student idea from Dr. Lee Il-guk's entrepreneurship class at Yongin University, with gratitude.
+        This is an independent, clean-room build — no copied text, no personal data, no trademarks.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><strong>Not an official Anthropic product.</strong> 설계 개념 데모 · 하드웨어 미구현.</p>
+    <p>Contributors: Dr. Lee Il-guk (이일국), LWJ, LMJ, Claude</p>
+    <p>Code: Apache-2.0 · Docs/그래픽: CC BY 4.0 · © 2026 CLSOFTLAB (씨엘소프트랩)</p>
+    <p><button id="btn-reset-all" class="btn link" type="button">저장 데이터 전체 초기화</button></p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
